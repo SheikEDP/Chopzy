@@ -470,3 +470,38 @@ exports.updatePrice = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+/**
+ * PATCH /api/admin/products/:id/stock
+ * Update only the product stock status
+ */
+exports.updateStock = async (req, res) => {
+  try {
+    console.log('📦 Updating product stock:', req.params.id);
+    console.log('Request body:', req.body);
+
+    const product = await Product.findByPk(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const { in_stock } = req.body;
+    if (in_stock === undefined || in_stock === null) {
+      return res.status(400).json({ success: false, message: 'Stock status is required' });
+    }
+
+    // Convert to boolean
+    const stockStatus = in_stock === true || in_stock === 'true';
+    await product.update({ in_stock: stockStatus });
+
+    console.log('✅ Product stock updated:', product.id, 'In Stock:', stockStatus);
+    res.json({ 
+      success: true, 
+      data: product,
+      message: `Product ${stockStatus ? 'is now In Stock' : 'is now Out of Stock'}`
+    });
+  } catch (err) {
+    console.error('❌ Error updating product stock:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
