@@ -100,6 +100,7 @@ router.get('/products', adminProtect, adminProduct.getAll);
 router.get('/products/:id', adminProtect, adminProduct.getById);
 router.post('/products', adminProtect, handleUpload, adminProduct.create);
 router.put('/products/:id', adminProtect, handleUpload, adminProduct.update);
+router.patch('/products/:id/price', adminProtect, adminProduct.updatePrice);
 router.delete('/products/:id', adminProtect, adminProduct.delete);
 
 // Orders

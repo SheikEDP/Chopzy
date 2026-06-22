@@ -436,3 +436,37 @@ exports.delete = async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 };
+
+/**
+ * PATCH /api/admin/products/:id/price
+ * Update only the product price
+ */
+exports.updatePrice = async (req, res) => {
+  try {
+    console.log('📦 Updating product price:', req.params.id);
+    console.log('Request body:', req.body);
+
+    const product = await Product.findByPk(req.params.id);
+    if (!product) {
+      return res.status(404).json({ success: false, message: 'Product not found' });
+    }
+
+    const { price } = req.body;
+    if (price === undefined || price === null) {
+      return res.status(400).json({ success: false, message: 'Price is required' });
+    }
+
+    const newPrice = parseFloat(price);
+    if (isNaN(newPrice) || newPrice < 0) {
+      return res.status(400).json({ success: false, message: 'Invalid price value' });
+    }
+
+    await product.update({ price: newPrice });
+
+    console.log('✅ Product price updated:', product.id, 'New price:', newPrice);
+    res.json({ success: true, data: product });
+  } catch (err) {
+    console.error('❌ Error updating product price:', err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+};
