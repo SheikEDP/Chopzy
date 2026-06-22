@@ -40,6 +40,7 @@ app.get('/health', (req, res) => {
     timestamp: new Date().toISOString(),
   });
 });
+app.use('/uploads', express.static('public/uploads'));
 
 // ── API routes ────────────────────────────────────────────────────────────────
 app.use('/api/auth',        authRoutes);
@@ -61,7 +62,7 @@ app.use((req, res) => {
 // ── Global error handler ──────────────────────────────────────────────────────
 app.use(errorHandler);
 
-app.use('/uploads', express.static('public/uploads'));
+
 
 // ── Start server ──────────────────────────────────────────────────────────────
 const startServer = async () => {

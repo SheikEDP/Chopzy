@@ -1,157 +1,5 @@
 
 
-// const { Category } = require('../models');
-// const fs = require('fs');
-// const path = require('path');
-
-// /**
-//  * GET /api/admin/categories
-//  * Returns all categories
-//  */
-// exports.getAll = async (req, res) => {
-//   try {
-//     const categories = await Category.findAll({
-//       order: [['sort_order', 'ASC'], ['name', 'ASC']],
-//     });
-//     res.json({ success: true, data: categories });
-//   } catch (err) {
-//     console.error('Error fetching categories:', err);
-//     res.status(500).json({ success: false, message: err.message });
-//   }
-// };
-
-// /**
-//  * POST /api/admin/categories
-//  * Creates a new category with image
-//  */
-// exports.create = async (req, res) => {
-//   try {
-//     const { name, emoji, color, description, sort_order } = req.body;
-    
-//     if (!name) {
-//       return res.status(400).json({ success: false, message: 'Category name is required' });
-//     }
-
-//     let image_url = null;
-//     if (req.file) {
-//       const fileName = `${Date.now()}_${req.file.originalname}`;
-//       const uploadPath = path.join(__dirname, '../public/uploads', fileName);
-//       fs.renameSync(req.file.path, uploadPath);
-//       image_url = `/uploads/${fileName}`;
-//       console.log('Image saved:', image_url);
-//     }
-
-//     const category = await Category.create({
-//       name,
-//       emoji: emoji || '📦',
-//       color: color || '#2E7D32',
-//       image_url,
-//       description: description || null,
-//       sort_order: sort_order ? parseInt(sort_order) : 0,
-//     });
-
-//     res.status(201).json({ success: true, data: category });
-//   } catch (err) {
-//     console.error('Error creating category:', err);
-//     if (req.file && fs.existsSync(req.file.path)) {
-//       try { fs.unlinkSync(req.file.path); } catch(e) {}
-//     }
-//     res.status(500).json({ success: false, message: err.message });
-//   }
-// };
-
-// /**
-//  * PUT /api/admin/categories/:id
-//  * Updates a category with optional image
-//  */
-// exports.update = async (req, res) => {
-//   try {
-//     console.log('Updating category:', req.params.id);
-//     console.log('Request body:', req.body);
-//     console.log('File:', req.file ? req.file.filename : 'No file');
-
-//     const category = await Category.findByPk(req.params.id);
-//     if (!category) {
-//       return res.status(404).json({ success: false, message: 'Category not found' });
-//     }
-
-//     const { name, emoji, color, description, sort_order } = req.body;
-
-//     let image_url = category.image_url;
-    
-//     // If a new image was uploaded
-//     if (req.file) {
-//       console.log('Processing new image...');
-      
-//       // Delete old image if exists
-//       if (category.image_url) {
-//         const oldPath = path.join(__dirname, '../public', category.image_url);
-//         if (fs.existsSync(oldPath)) {
-//           try { 
-//             fs.unlinkSync(oldPath);
-//             console.log('Deleted old image:', oldPath);
-//           } catch(e) { 
-//             console.log('Error deleting old image:', e.message);
-//           }
-//         }
-//       }
-      
-//       // Save new image
-//       const fileName = `${Date.now()}_${req.file.originalname}`;
-//       const uploadPath = path.join(__dirname, '../public/uploads', fileName);
-//       fs.renameSync(req.file.path, uploadPath);
-//       image_url = `/uploads/${fileName}`;
-//       console.log('New image saved:', image_url);
-//     }
-
-//     // Update category
-//     await category.update({
-//       name: name || category.name,
-//       emoji: emoji || category.emoji,
-//       color: color || category.color,
-//       image_url: image_url,
-//       description: description !== undefined ? description : category.description,
-//       sort_order: sort_order !== undefined ? parseInt(sort_order) : category.sort_order,
-//     });
-
-//     console.log('Category updated:', category.id);
-//     res.json({ success: true, data: category });
-//   } catch (err) {
-//     console.error('Error updating category:', err);
-//     if (req.file && fs.existsSync(req.file.path)) {
-//       try { fs.unlinkSync(req.file.path); } catch(e) {}
-//     }
-//     res.status(500).json({ success: false, message: err.message });
-//   }
-// };
-
-// /**
-//  * DELETE /api/admin/categories/:id
-//  * Deletes a category
-//  */
-// exports.delete = async (req, res) => {
-//   try {
-//     const category = await Category.findByPk(req.params.id);
-//     if (!category) {
-//       return res.status(404).json({ success: false, message: 'Category not found' });
-//     }
-
-//     // Delete associated image file
-//     if (category.image_url) {
-//       const imagePath = path.join(__dirname, '../public', category.image_url);
-//       if (fs.existsSync(imagePath)) {
-//         try { fs.unlinkSync(imagePath); } catch(e) { console.log('Error deleting image:', e); }
-//       }
-//     }
-
-//     await category.destroy();
-//     res.json({ success: true });
-//   } catch (err) {
-//     console.error('Error deleting category:', err);
-//     res.status(500).json({ success: false, message: err.message });
-//   }
-// };
-
 
 const { Category } = require('../models');
 const fs = require('fs');
@@ -288,7 +136,7 @@ exports.update = async (req, res) => {
       const uploadPath = path.join(uploadDir, fileName);
       fs.renameSync(req.file.path, uploadPath);
       image_url = `/uploads/${fileName}`;
-      console.log('New image saved:', image_url);
+      console.log('✅ New image saved:', image_url);
     }
 
     // Build update data safely
@@ -296,7 +144,7 @@ exports.update = async (req, res) => {
     if (name !== undefined) updateData.name = name;
     if (emoji !== undefined) updateData.emoji = emoji || null;
     if (color !== undefined) updateData.color = color;
-    if (image_url !== undefined) updateData.image_url = image_url;
+    if (image_url !== undefined) updateData.image_url = image_url; // ✅ Make sure this is set
     if (description !== undefined) updateData.description = description || null;
     if (sort_order !== undefined) updateData.sort_order = safeParseInt(sort_order);
 
@@ -308,7 +156,7 @@ exports.update = async (req, res) => {
       attributes: { exclude: ['createdAt', 'updatedAt'] }
     });
 
-    console.log('✅ Category updated:', category.id);
+    console.log('✅ Category updated:', category.id, 'Image URL:', image_url);
     res.json({ success: true, data: updatedCategory });
   } catch (err) {
     console.error('❌ Error updating category:', err);

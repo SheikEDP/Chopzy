@@ -323,20 +323,6 @@ exports.update = async (req, res) => {
       badge, product_type, sort_order, in_stock, rating, review_count,
     } = req.body;
 
-    // Validate required fields
-    if (!name) {
-      return res.status(400).json({ success: false, message: 'Product name is required' });
-    }
-    if (!category_id) {
-      return res.status(400).json({ success: false, message: 'Category ID is required' });
-    }
-    if (!price) {
-      return res.status(400).json({ success: false, message: 'Price is required' });
-    }
-    if (!unit) {
-      return res.status(400).json({ success: false, message: 'Unit is required' });
-    }
-
     let image_url = product.image_url;
     if (req.file) {
       console.log('Processing new image...');
@@ -354,16 +340,18 @@ exports.update = async (req, res) => {
         }
       }
       
+      // Create uploads directory if it doesn't exist
       const uploadDir = path.join(__dirname, '../public/uploads');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
       
+      // Save new image
       const fileName = `${Date.now()}_${req.file.originalname}`;
       const uploadPath = path.join(uploadDir, fileName);
       fs.renameSync(req.file.path, uploadPath);
       image_url = `/uploads/${fileName}`;
-      console.log('New image saved:', image_url);
+      console.log('✅ New image saved:', image_url);
     }
 
     // Build update data safely
@@ -376,7 +364,7 @@ exports.update = async (req, res) => {
     }
     if (unit !== undefined) updateData.unit = unit;
     if (emoji !== undefined) updateData.emoji = emoji || null;
-    if (image_url !== undefined) updateData.image_url = image_url;
+    if (image_url !== undefined) updateData.image_url = image_url; // ✅ Make sure this is set
     if (description !== undefined) updateData.description = description || null;
     if (badge !== undefined) updateData.badge = badge || null;
     if (product_type !== undefined) updateData.product_type = product_type;
@@ -387,7 +375,7 @@ exports.update = async (req, res) => {
 
     await product.update(updateData);
 
-    // Fetch updated product without circular references
+    // Fetch updated product
     const updatedProduct = await Product.findByPk(req.params.id, {
       include: [
         { 
@@ -399,7 +387,7 @@ exports.update = async (req, res) => {
       attributes: { exclude: ['createdAt', 'updatedAt'] }
     });
 
-    console.log('✅ Product updated:', product.id);
+    console.log('✅ Product updated:', product.id, 'Image URL:', image_url);
     res.json({ success: true, data: updatedProduct });
   } catch (err) {
     console.error('❌ Error updating product:', err);
