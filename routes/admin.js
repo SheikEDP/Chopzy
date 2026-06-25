@@ -84,6 +84,7 @@ const adminDeliverySlot = require('../controllers/adminDeliverySlotController');
 
 // Auth
 router.post('/login', adminAuth.login);
+router.post('/logout', adminProtect, adminAuth.logout);
 router.post('/fcm-token', adminProtect, adminAuth.registerFcmToken);
 
 // Dashboard
