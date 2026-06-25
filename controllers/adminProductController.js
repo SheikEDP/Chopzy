@@ -1,17 +1,351 @@
 
 
+// const { Product, Category } = require('../models');
+// const fs = require('fs');
+// const path = require('path');
+
+// // Helper to parse float from string or number (renamed to avoid recursion)
+// function safeParseFloat(value) {
+//   if (value === null || value === undefined || value === '') return 0;
+//   const num = typeof value === 'string' ? parseFloat(value) : value;
+//   return isNaN(num) ? 0 : num;
+// }
+
+// // Helper to parse integer
+// function safeParseInt(value) {
+//   if (value === null || value === undefined || value === '') return 0;
+//   const num = typeof value === 'string' ? parseInt(value) : value;
+//   return isNaN(num) ? 0 : num;
+// }
+
+// /**
+//  * GET /api/admin/products
+//  * Returns all products (admin view)
+//  */
+// exports.getAll = async (req, res) => {
+//   try {
+//     const products = await Product.findAll({
+//       include: [
+//         { 
+//           model: Category, 
+//           as: 'category', 
+//           attributes: ['id', 'name', 'emoji', 'color'] 
+//         }
+//       ],
+//       order: [['sort_order', 'ASC'], ['name', 'ASC']],
+//       attributes: { exclude: ['createdAt', 'updatedAt'] }
+//     });
+//     res.json({ success: true, data: products });
+//   } catch (err) {
+//     console.error('Error fetching products:', err);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// /**
+//  * GET /api/admin/products/:id
+//  * Returns single product
+//  */
+// exports.getById = async (req, res) => {
+//   try {
+//     const product = await Product.findByPk(req.params.id, {
+//       include: [
+//         { 
+//           model: Category, 
+//           as: 'category', 
+//           attributes: ['id', 'name', 'emoji', 'color'] 
+//         }
+//       ],
+//       attributes: { exclude: ['createdAt', 'updatedAt'] }
+//     });
+//     if (!product) return res.status(404).json({ success: false, message: 'Product not found' });
+//     res.json({ success: true, data: product });
+//   } catch (err) {
+//     console.error('Error fetching product:', err);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// /**
+//  * POST /api/admin/products
+//  * Creates a new product (with optional image upload)
+//  */
+// exports.create = async (req, res) => {
+//   try {
+//     console.log('📦 Creating product...');
+//     console.log('Request body:', req.body);
+//     console.log('File:', req.file ? req.file.filename : 'No file');
+
+//     const {
+//       name, category_id, price, original_price, unit, emoji, description,
+//       badge, product_type, sort_order, in_stock, rating, review_count,
+//     } = req.body;
+
+//     // Validate required fields
+//     if (!name) {
+//       return res.status(400).json({ success: false, message: 'Product name is required' });
+//     }
+//     if (!category_id) {
+//       return res.status(400).json({ success: false, message: 'Category ID is required' });
+//     }
+//     if (!price) {
+//       return res.status(400).json({ success: false, message: 'Price is required' });
+//     }
+//     if (!unit) {
+//       return res.status(400).json({ success: false, message: 'Unit is required' });
+//     }
+
+//     let image_url = null;
+//     if (req.file) {
+//       const uploadDir = path.join(__dirname, '../public/uploads');
+//       if (!fs.existsSync(uploadDir)) {
+//         fs.mkdirSync(uploadDir, { recursive: true });
+//       }
+      
+//       const fileName = `${Date.now()}_${req.file.originalname}`;
+//       const uploadPath = path.join(uploadDir, fileName);
+//       fs.renameSync(req.file.path, uploadPath);
+//       image_url = `/uploads/${fileName}`;
+//       console.log('Image saved:', image_url);
+//     }
+
+//     const product = await Product.create({
+//       name,
+//       category_id: safeParseInt(category_id),
+//       price: safeParseFloat(price),
+//       original_price: original_price ? safeParseFloat(original_price) : null,
+//       unit,
+//       emoji: emoji || null,
+//       image_url,
+//       description: description || null,
+//       badge: badge || null,
+//       product_type: product_type || 'raw',
+//       sort_order: sort_order ? safeParseInt(sort_order) : 0,
+//       in_stock: in_stock === 'false' ? false : true,
+//       rating: rating ? safeParseFloat(rating) : 0,
+//       review_count: review_count ? safeParseInt(review_count) : 0,
+//     });
+
+//     // Return product without circular references
+//     const productData = product.toJSON();
+//     delete productData.createdAt;
+//     delete productData.updatedAt;
+
+//     console.log('✅ Product created:', product.id);
+//     res.status(201).json({ success: true, data: productData });
+//   } catch (err) {
+//     console.error('❌ Error creating product:', err);
+//     if (req.file && fs.existsSync(req.file.path)) {
+//       try { fs.unlinkSync(req.file.path); } catch(e) {}
+//     }
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// /**
+//  * PUT /api/admin/products/:id
+//  * Updates an existing product (with optional image replacement)
+//  */
+// exports.update = async (req, res) => {
+//   try {
+//     console.log('📦 Updating product:', req.params.id);
+//     console.log('Request body:', req.body);
+//     console.log('File:', req.file ? req.file.filename : 'No file');
+
+//     const product = await Product.findByPk(req.params.id);
+//     if (!product) {
+//       return res.status(404).json({ success: false, message: 'Product not found' });
+//     }
+
+//     const {
+//       name, category_id, price, original_price, unit, emoji, description,
+//       badge, product_type, sort_order, in_stock, rating, review_count,
+//     } = req.body;
+
+//     let image_url = product.image_url;
+//     if (req.file) {
+//       console.log('Processing new image...');
+      
+//       // Delete old image if exists
+//       if (product.image_url) {
+//         const oldPath = path.join(__dirname, '../public', product.image_url);
+//         if (fs.existsSync(oldPath)) {
+//           try { 
+//             fs.unlinkSync(oldPath);
+//             console.log('Deleted old image:', oldPath);
+//           } catch(e) { 
+//             console.log('Error deleting old image:', e.message);
+//           }
+//         }
+//       }
+      
+//       // Create uploads directory if it doesn't exist
+//       const uploadDir = path.join(__dirname, '../public/uploads');
+//       if (!fs.existsSync(uploadDir)) {
+//         fs.mkdirSync(uploadDir, { recursive: true });
+//       }
+      
+//       // Save new image
+//       const fileName = `${Date.now()}_${req.file.originalname}`;
+//       const uploadPath = path.join(uploadDir, fileName);
+//       fs.renameSync(req.file.path, uploadPath);
+//       image_url = `/uploads/${fileName}`;
+//       console.log('✅ New image saved:', image_url);
+//     }
+
+//     // Build update data safely
+//     const updateData = {};
+//     if (name !== undefined) updateData.name = name;
+//     if (category_id !== undefined) updateData.category_id = safeParseInt(category_id);
+//     if (price !== undefined) updateData.price = safeParseFloat(price);
+//     if (original_price !== undefined) {
+//       updateData.original_price = original_price ? safeParseFloat(original_price) : null;
+//     }
+//     if (unit !== undefined) updateData.unit = unit;
+//     if (emoji !== undefined) updateData.emoji = emoji || null;
+//     if (image_url !== undefined) updateData.image_url = image_url; // ✅ Make sure this is set
+//     if (description !== undefined) updateData.description = description || null;
+//     if (badge !== undefined) updateData.badge = badge || null;
+//     if (product_type !== undefined) updateData.product_type = product_type;
+//     if (sort_order !== undefined) updateData.sort_order = safeParseInt(sort_order);
+//     if (in_stock !== undefined) updateData.in_stock = in_stock === 'false' ? false : true;
+//     if (rating !== undefined) updateData.rating = safeParseFloat(rating);
+//     if (review_count !== undefined) updateData.review_count = safeParseInt(review_count);
+
+//     await product.update(updateData);
+
+//     // Fetch updated product
+//     const updatedProduct = await Product.findByPk(req.params.id, {
+//       include: [
+//         { 
+//           model: Category, 
+//           as: 'category', 
+//           attributes: ['id', 'name', 'emoji', 'color'] 
+//         }
+//       ],
+//       attributes: { exclude: ['createdAt', 'updatedAt'] }
+//     });
+
+//     console.log('✅ Product updated:', product.id, 'Image URL:', image_url);
+//     res.json({ success: true, data: updatedProduct });
+//   } catch (err) {
+//     console.error('❌ Error updating product:', err);
+//     if (req.file && fs.existsSync(req.file.path)) {
+//       try { fs.unlinkSync(req.file.path); } catch(e) {}
+//     }
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// /**
+//  * DELETE /api/admin/products/:id
+//  * Deletes a product and its associated image
+//  */
+// exports.delete = async (req, res) => {
+//   try {
+//     const product = await Product.findByPk(req.params.id);
+//     if (!product) {
+//       return res.status(404).json({ success: false, message: 'Product not found' });
+//     }
+
+//     // Delete associated image file
+//     if (product.image_url) {
+//       const imagePath = path.join(__dirname, '../public', product.image_url);
+//       if (fs.existsSync(imagePath)) {
+//         try { fs.unlinkSync(imagePath); } catch(e) { console.log('Error deleting image:', e); }
+//       }
+//     }
+
+//     await product.destroy();
+//     res.json({ success: true });
+//   } catch (err) {
+//     console.error('Error deleting product:', err);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// /**
+//  * PATCH /api/admin/products/:id/price
+//  * Update only the product price
+//  */
+// exports.updatePrice = async (req, res) => {
+//   try {
+//     console.log('📦 Updating product price:', req.params.id);
+//     console.log('Request body:', req.body);
+
+//     const product = await Product.findByPk(req.params.id);
+//     if (!product) {
+//       return res.status(404).json({ success: false, message: 'Product not found' });
+//     }
+
+//     const { price } = req.body;
+//     if (price === undefined || price === null) {
+//       return res.status(400).json({ success: false, message: 'Price is required' });
+//     }
+
+//     const newPrice = parseFloat(price);
+//     if (isNaN(newPrice) || newPrice < 0) {
+//       return res.status(400).json({ success: false, message: 'Invalid price value' });
+//     }
+
+//     await product.update({ price: newPrice });
+
+//     console.log('✅ Product price updated:', product.id, 'New price:', newPrice);
+//     res.json({ success: true, data: product });
+//   } catch (err) {
+//     console.error('❌ Error updating product price:', err);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+// /**
+//  * PATCH /api/admin/products/:id/stock
+//  * Update only the product stock status
+//  */
+// exports.updateStock = async (req, res) => {
+//   try {
+//     console.log('📦 Updating product stock:', req.params.id);
+//     console.log('Request body:', req.body);
+
+//     const product = await Product.findByPk(req.params.id);
+//     if (!product) {
+//       return res.status(404).json({ success: false, message: 'Product not found' });
+//     }
+
+//     const { in_stock } = req.body;
+//     if (in_stock === undefined || in_stock === null) {
+//       return res.status(400).json({ success: false, message: 'Stock status is required' });
+//     }
+
+//     // Convert to boolean
+//     const stockStatus = in_stock === true || in_stock === 'true';
+//     await product.update({ in_stock: stockStatus });
+
+//     console.log('✅ Product stock updated:', product.id, 'In Stock:', stockStatus);
+//     res.json({ 
+//       success: true, 
+//       data: product,
+//       message: `Product ${stockStatus ? 'is now In Stock' : 'is now Out of Stock'}`
+//     });
+//   } catch (err) {
+//     console.error('❌ Error updating product stock:', err);
+//     res.status(500).json({ success: false, message: err.message });
+//   }
+// };
+
+
+// controllers/adminProductController.js
 const { Product, Category } = require('../models');
 const fs = require('fs');
 const path = require('path');
 
-// Helper to parse float from string or number (renamed to avoid recursion)
+// Helper functions
 function safeParseFloat(value) {
   if (value === null || value === undefined || value === '') return 0;
   const num = typeof value === 'string' ? parseFloat(value) : value;
   return isNaN(num) ? 0 : num;
 }
 
-// Helper to parse integer
 function safeParseInt(value) {
   if (value === null || value === undefined || value === '') return 0;
   const num = typeof value === 'string' ? parseInt(value) : value;
@@ -68,7 +402,7 @@ exports.getById = async (req, res) => {
 
 /**
  * POST /api/admin/products
- * Creates a new product (with optional image upload)
+ * Creates a new product
  */
 exports.create = async (req, res) => {
   try {
@@ -109,10 +443,14 @@ exports.create = async (req, res) => {
       console.log('Image saved:', image_url);
     }
 
+    const priceValue = safeParseFloat(price);
+    const currentTime = new Date();
+
     const product = await Product.create({
       name,
       category_id: safeParseInt(category_id),
-      price: safeParseFloat(price),
+      price: priceValue,
+      previous_price: null, // No previous price for new product
       original_price: original_price ? safeParseFloat(original_price) : null,
       unit,
       emoji: emoji || null,
@@ -124,9 +462,10 @@ exports.create = async (req, res) => {
       in_stock: in_stock === 'false' ? false : true,
       rating: rating ? safeParseFloat(rating) : 0,
       review_count: review_count ? safeParseInt(review_count) : 0,
+      price_history: [{ price: priceValue, timestamp: currentTime.toISOString() }],
+      last_price_update: currentTime,
     });
 
-    // Return product without circular references
     const productData = product.toJSON();
     delete productData.createdAt;
     delete productData.updatedAt;
@@ -144,7 +483,7 @@ exports.create = async (req, res) => {
 
 /**
  * PUT /api/admin/products/:id
- * Updates an existing product (with optional image replacement)
+ * Updates an existing product
  */
 exports.update = async (req, res) => {
   try {
@@ -166,7 +505,6 @@ exports.update = async (req, res) => {
     if (req.file) {
       console.log('Processing new image...');
       
-      // Delete old image if exists
       if (product.image_url) {
         const oldPath = path.join(__dirname, '../public', product.image_url);
         if (fs.existsSync(oldPath)) {
@@ -179,13 +517,11 @@ exports.update = async (req, res) => {
         }
       }
       
-      // Create uploads directory if it doesn't exist
       const uploadDir = path.join(__dirname, '../public/uploads');
       if (!fs.existsSync(uploadDir)) {
         fs.mkdirSync(uploadDir, { recursive: true });
       }
       
-      // Save new image
       const fileName = `${Date.now()}_${req.file.originalname}`;
       const uploadPath = path.join(uploadDir, fileName);
       fs.renameSync(req.file.path, uploadPath);
@@ -193,17 +529,13 @@ exports.update = async (req, res) => {
       console.log('✅ New image saved:', image_url);
     }
 
-    // Build update data safely
+    // Build update data
     const updateData = {};
     if (name !== undefined) updateData.name = name;
     if (category_id !== undefined) updateData.category_id = safeParseInt(category_id);
-    if (price !== undefined) updateData.price = safeParseFloat(price);
-    if (original_price !== undefined) {
-      updateData.original_price = original_price ? safeParseFloat(original_price) : null;
-    }
     if (unit !== undefined) updateData.unit = unit;
     if (emoji !== undefined) updateData.emoji = emoji || null;
-    if (image_url !== undefined) updateData.image_url = image_url; // ✅ Make sure this is set
+    if (image_url !== undefined) updateData.image_url = image_url;
     if (description !== undefined) updateData.description = description || null;
     if (badge !== undefined) updateData.badge = badge || null;
     if (product_type !== undefined) updateData.product_type = product_type;
@@ -211,6 +543,32 @@ exports.update = async (req, res) => {
     if (in_stock !== undefined) updateData.in_stock = in_stock === 'false' ? false : true;
     if (rating !== undefined) updateData.rating = safeParseFloat(rating);
     if (review_count !== undefined) updateData.review_count = safeParseInt(review_count);
+    if (original_price !== undefined) {
+      updateData.original_price = original_price ? safeParseFloat(original_price) : null;
+    }
+
+    // ── Handle price update with history ──
+    if (price !== undefined) {
+      const newPrice = safeParseFloat(price);
+      const oldPrice = parseFloat(product.price);
+      
+      if (newPrice !== oldPrice) {
+        // Save current price as previous
+        updateData.previous_price = oldPrice;
+        updateData.price = newPrice;
+        updateData.last_price_update = new Date();
+        
+        // Update price history
+        const currentHistory = product.price_history || [];
+        const newEntry = {
+          price: newPrice,
+          timestamp: new Date().toISOString(),
+        };
+        updateData.price_history = [...currentHistory, newEntry];
+        
+        console.log(`💰 Price changed: ${oldPrice} → ${newPrice}`);
+      }
+    }
 
     await product.update(updateData);
 
@@ -226,7 +584,7 @@ exports.update = async (req, res) => {
       attributes: { exclude: ['createdAt', 'updatedAt'] }
     });
 
-    console.log('✅ Product updated:', product.id, 'Image URL:', image_url);
+    console.log('✅ Product updated:', product.id);
     res.json({ success: true, data: updatedProduct });
   } catch (err) {
     console.error('❌ Error updating product:', err);
@@ -239,7 +597,7 @@ exports.update = async (req, res) => {
 
 /**
  * DELETE /api/admin/products/:id
- * Deletes a product and its associated image
+ * Deletes a product
  */
 exports.delete = async (req, res) => {
   try {
@@ -248,7 +606,6 @@ exports.delete = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Product not found' });
     }
 
-    // Delete associated image file
     if (product.image_url) {
       const imagePath = path.join(__dirname, '../public', product.image_url);
       if (fs.existsSync(imagePath)) {
@@ -266,7 +623,7 @@ exports.delete = async (req, res) => {
 
 /**
  * PATCH /api/admin/products/:id/price
- * Update only the product price
+ * Update only the product price with history tracking
  */
 exports.updatePrice = async (req, res) => {
   try {
@@ -288,10 +645,37 @@ exports.updatePrice = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Invalid price value' });
     }
 
-    await product.update({ price: newPrice });
+    const oldPrice = parseFloat(product.price);
+    const currentTime = new Date();
 
-    console.log('✅ Product price updated:', product.id, 'New price:', newPrice);
-    res.json({ success: true, data: product });
+    // Update price with history
+    const updateData = {
+      price: newPrice,
+      previous_price: oldPrice,
+      last_price_update: currentTime,
+    };
+
+    // Update price history
+    const currentHistory = product.price_history || [];
+    const newEntry = {
+      price: newPrice,
+      timestamp: currentTime.toISOString(),
+    };
+    updateData.price_history = [...currentHistory, newEntry];
+
+    await product.update(updateData);
+
+    // Fetch updated product
+    const updatedProduct = await Product.findByPk(req.params.id, {
+      attributes: { exclude: ['createdAt', 'updatedAt'] }
+    });
+
+    console.log(`✅ Product price updated: ${oldPrice} → ${newPrice}`);
+    res.json({ 
+      success: true, 
+      data: updatedProduct,
+      message: `Price updated from ₹${oldPrice} to ₹${newPrice}`
+    });
   } catch (err) {
     console.error('❌ Error updating product price:', err);
     res.status(500).json({ success: false, message: err.message });
@@ -317,7 +701,6 @@ exports.updateStock = async (req, res) => {
       return res.status(400).json({ success: false, message: 'Stock status is required' });
     }
 
-    // Convert to boolean
     const stockStatus = in_stock === true || in_stock === 'true';
     await product.update({ in_stock: stockStatus });
 
