@@ -73,6 +73,7 @@ const AdminUser = require('./AdminUser');
 const AdminFcmToken = require('./AdminFcmToken');
 const DeliverySlot = require('./DeliverySlot');
 const AppConfig = require('./AppConfig');
+const DeliveryZone = require('./DeliveryZone');
 
 // ── Associations ──────────────────────────────────────────────────────────────
 
@@ -117,4 +118,5 @@ module.exports = {
   AdminFcmToken,
   DeliverySlot,
   AppConfig,
+  DeliveryZone,
 };

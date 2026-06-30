@@ -81,6 +81,7 @@ const adminProduct = require('../controllers/adminProductController');
 const adminOrder = require('../controllers/adminOrderController');
 const adminConfig = require('../controllers/adminConfigController');
 const adminDeliverySlot = require('../controllers/adminDeliverySlotController'); // ADD THIS
+const adminDeliveryZone = require('../controllers/adminDeliveryZoneController');
 
 // Auth
 router.post('/login', adminAuth.login);
@@ -116,6 +117,14 @@ router.post('/delivery-slots', adminProtect, adminDeliverySlot.create);
 router.put('/delivery-slots/:id', adminProtect, adminDeliverySlot.update);
 router.patch('/delivery-slots/:id/toggle', adminProtect, adminDeliverySlot.toggleActive);
 router.delete('/delivery-slots/:id', adminProtect, adminDeliverySlot.delete);
+
+// ── Delivery Zones ── Add these routes
+router.get('/delivery-zones', adminProtect, adminDeliveryZone.getAll);
+router.get('/delivery-zones/:id', adminProtect, adminDeliveryZone.getById);
+router.post('/delivery-zones', adminProtect, adminDeliveryZone.create);
+router.put('/delivery-zones/:id', adminProtect, adminDeliveryZone.update);
+router.patch('/delivery-zones/:id/toggle', adminProtect, adminDeliveryZone.toggleActive);
+router.delete('/delivery-zones/:id', adminProtect, adminDeliveryZone.delete);
 
 // ── Config ──
 router.get('/config', adminProtect, adminConfig.get);
