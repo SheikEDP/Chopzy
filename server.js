@@ -16,6 +16,8 @@ const orderRoutes     = require('./routes/orders');
 const addressRoutes   = require('./routes/addresses');
 const adminRoutes = require('./routes/admin');
 const deliverySlotRoutes = require('./routes/deliverySlots');
+const deliveryZonesRoutes = require('./routes/deliveryZones');
+const configRoutes    = require('./routes/config'); 
 
 const app  = express();
 const PORT = process.env.PORT || 3000;
@@ -50,6 +52,8 @@ app.use('/api/orders',      orderRoutes);
 app.use('/api/addresses',   addressRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api/delivery-slots', deliverySlotRoutes);
+app.use('/api/delivery-zones', deliveryZonesRoutes);
+app.use('/api/config',      configRoutes);
 
 // ── 404 handler ───────────────────────────────────────────────────────────────
 app.use((req, res) => {
